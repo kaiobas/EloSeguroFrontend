@@ -1,29 +1,63 @@
-import { defineRouter } from '#q-app/wrappers'
-import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
+import { route } from 'quasar/wrappers'
+import {
+  createMemoryHistory,
+  createRouter,
+  createWebHashHistory,
+  createWebHistory
+} from 'vue-router'
+
 import routes from './routes'
+import { useAuthStore } from 'src/stores/authStore'
 
-/*
- * If not building with SSR mode, you can
- * directly export the Router instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Router instance.
- */
-
-export default defineRouter((/* { store, ssrContext } */) => {
+export default route(function () {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+    : process.env.VUE_ROUTER_MODE === 'history'
+      ? createWebHistory
+      : createWebHashHistory
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
-
-    // Leave this as is and make changes in quasar.conf.js instead!
-    // quasar.conf.js -> build -> vueRouterMode
-    // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE)
+  })
+
+  Router.beforeEach((to) => {
+    const authStore = useAuthStore()
+
+    const publicRoutes = ['login', 'register']
+
+    const securityRoutes = ['security-word']
+
+    const contractRoutes = ['contract-acceptance', 'contract-blocked']
+
+    if (publicRoutes.includes(to.name)) {
+      return true
+    }
+
+    if (securityRoutes.includes(to.name)) {
+      if (!authStore.needsSecurityVerification) {
+        return { name: 'login' }
+      }
+
+      return true
+    }
+
+    if (!authStore.isAuthenticated) {
+      return { name: 'login' }
+    }
+
+    const needsContract = !authStore.hasAcceptedContract
+
+    if (needsContract && !contractRoutes.includes(to.name)) {
+      return { name: 'contract-acceptance' }
+    }
+
+    if (!needsContract && to.name === 'contract-acceptance') {
+      return { name: 'dashboard' }
+    }
+
+    return true
   })
 
   return Router
