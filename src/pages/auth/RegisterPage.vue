@@ -384,7 +384,7 @@ function register() {
     radial-gradient(circle at 18% 16%, rgba(168, 218, 220, 0.38), transparent 28%),
     radial-gradient(circle at 78% 22%, rgba(205, 180, 219, 0.34), transparent 30%),
     radial-gradient(circle at 50% 100%, rgba(123, 175, 212, 0.30), transparent 36%),
-    linear-gradient(135deg, #dbeaf0 0%, #d7e1ea 42%, #e7e1ef 100%);
+    linear-gradient(135deg, #bbd0d8 0%, #9eacb8 42%, #a299ac 100%);
 }
 
 .register-page::before {
